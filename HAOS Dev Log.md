@@ -42,7 +42,7 @@ server {
     }
 }
 ```
-此处未开启SSL/TLS（即443端口https协议访问），如果要使用参考：<br />在映射的configuration.yaml中，需要增加配置项
+此处未开启SSL/TLS（即443端口https协议访问），如果要使用参考：<br />**在映射的configuration.yaml中，需要增加配置项**
 ```yaml
 http:
 	use_x_forwarded_for: true
@@ -110,15 +110,73 @@ supervisor.exceptions.StoreJobError: 'GitRepo.pull' blocked from execution, no s
 人不在家，但仍然可以操作家庭内设备或使用内网搭建好的相关服务
 <a name="mIjma"></a>
 #### 用公网
+查看路由WAN口ip是否与百度搜索IP得到的结果一致，若一致则有公网IP否则没有。若WAN口IP形如10.x.x.x，则没有。
 
 1. 有公网ip，直接访问（端口转发） 转到[端口转发](#fMRuz)这一节。
-2. 内网穿透 （**但是需要一个中转服务器**）
-   1. Zerotier （**也需要服务器**）内网穿透方案之一
-   2. 问题：需要在LAN中运行脚本或程序，所以要么是LAN中某设备不关机运行内网穿透，要么是树莓派想办法使用docker使用内网穿透容器。
-3. 安装HACS插件后，可以搜索到molohub，直接用他们的服务 （这个比较快捷，如果前三个没操作过，推荐这个）教程：
+2. 没有公网ip，内网穿透 （**但是需要一个中转服务器**）
+   1. ~~Zerotier （~~**~~也需要服务器~~**~~）内网穿透方案之一 ~~采用FRP进行内网穿透
+   2. 问题：需要在LAN中运行脚本或程序，所以要么是LAN中某设备不关机运行内网穿透（update: 树莓派本身即可），要么是树莓派想办法使用docker使用内网穿透容器。
+      1. 尝试使用FRP，服务端部署完成。[Steps here](#FhFUV)
+      2. ~~3.14 问题：~~~~从ssh打开docker，镜像pull失败（疑似镜像源在国外原因），更改镜像源尝试重启docker服务，发现systemctl命令不存在，service命令找不到docker compose服务和docker服务，尝试重启，重启后无法正常开机~~
+      3. ~~尝试使用HomeAssistant add-on： tunnel2local，安装问题依然存在~~
+         1. 问题原因依然是下载，看源码是从GitHub下载的，HA超时会报错
+      4. 客户端通过SSH & Terminal插件，手动安装FRP并配置。[参考Server-side以及Client-side](#FhFUV)
+3. ~~安装HACS插件后，可以搜索到molohub，直接用他们的服务 （这个比较快捷，如果前三个没操作过，推荐这个）教程：~~不彳亍，该插件的服务已经停止运行，开发组也换了
 <a name="rJ1bT"></a>
 #### 不用公网
 直接在HA里把其他设备，连到homekit里<br />如果你的手机是iphone，在家里留一台ipad或者homepod，就可以远程控制。<br />缺点：限制比较大，HA里别的功能也不能远程操作了。而且设备要求多
+<a name="FhFUV"></a>
+#### FRP: Docker部署方式 Server-side
+确保Docker以及Docker-compose已经安装<br />新建空文件夹来保存docker-compose.yml以及配置文件frps.ini
+```shell
+mkdir /root/docker-compose-data/frp/
+cd /root/docker-compose-data/frp/
+touch docker-compose.yml
+touch frps.ini
+
+nano docker-compose.yml
+```
+> nano是文本编辑器，使用vim或vi也可以
+
+编辑`docker-compose.yml`
+```yaml
+version: '3.3'
+services:
+    frps:
+        restart: always
+        network_mode: host
+        volumes:
+            - '/root/docker-compose-data/frp/frps.ini:/etc/frp/frps.ini'
+        container_name: frps
+        image: snowdreamtech/frps:0.48.0
+```
+此处0.48.0是版本号，最好确保版本号与客户端使用的版本一致<br />修改`frps.ini`
+```
+[common]
+bind_port = 7000
+# 启用面板
+dashboard_port = 4900
+# 面板登录名和密码
+dashboard_user = ASD
+dashboard_pwd = SAMPLEPWD
+# 自己的域名 (根据实际情况修改,可以不要)
+subdomain_host = penetrate.yourdomain.top  
+# 服务token(根据实际情况修改),相当于连接密码,建议设置，与客户端配置的必须一致
+token = SAMPLETOKEN
+```
+不要直接复制其他教程的ini，**有些教程的注释与配置项在同一行，这样会识别为配置项的一部分！**<br />血泪教训，稍后客户端的frpc.ini同理，**千万不能把＃注释和配置项写在同一行**。很多教程都是写在同一行。<br />**注意服务器安全组放行上述对应端口（bind_port以及dashboard_port），如果使用了类似BTPanel等快速配置面板的服务器，注意在面板中放行对应端口。注意还需要放行frpc.ini中配置的remote_port端口！**
+<a name="d869t"></a>
+#### FRP: 手动部署方式 Client-side
+尝试使用docker及docker-compose部署FRP失败，重启后CLI工作正常但是无法访问8123端口，FRP的add-on tunnel2local由于下载问题，商店无法直接安装，所以采用手动安装。前提：镜像内需要有SSH & Terminal 插件来使用Linux命令行（HA的命令行是不能使用Linux相关命令的）<br />跟随中客户端（树莓派）部分的引导配置客户端的FRP服务。**不要直接复制教程内的frpc.ini文件使用，注释不能在配置项同一行。**<br />**同时推荐打开日志输出：**
+> 最好加一个重定向错误输出的参数，而且用全局变量最好，frpc.ini里面可以加一个日志输出，我这边用的frpc.ini:<br />[common]<br />server_addr = xxxxx<br />server_port = xxx<br />token = xxx
+
+log_file = /config/frp/frp/log/frpc.log<br />log_level = info<br />log_max_days = 3
+
+[HomeAssistant]<br />type = tcp<br />local_ip = 192.168.xx.xx<br />local_port = 8123<br />remote_port = xxxxx
+
+然后命令是HA里面的configuration.yaml命令是:<br />shell_command:<br />frpc: nohup /config/frp/frp/frpc -c /config/frp/frp/frpc.ini >/config/frp/frp/log/1234.log 2>&1 &<br />这样不管是错误还是frp的日志都能看的很清楚
+
+frpc.ini中配置的remote_port务必在服务器段配置安全组放行该端口。<br />如遇错误可以查看log定位，同时，也可以访问服务器端dashboard来查看是否有客户端连接：左侧Proxies -> TCP<br />![image.png](https://cdn.nlark.com/yuque/0/2023/png/34376379/1678962087209-f4120759-0ff2-4ba0-8c36-742ac7b7ac4a.png#averageHue=%23ead0af&clientId=ud8a442c1-a650-4&from=paste&height=241&id=u05667dca&name=image.png&originHeight=241&originWidth=1281&originalType=binary&ratio=1&rotation=0&showTitle=false&size=7346&status=done&style=none&taskId=uf7738b83-7117-430c-9813-7608548e025&title=&width=1281)<br />确认后可以访问ServerIP:remote_port查看本地的服务。
 <a name="lxjHJ"></a>
 ## 语音及ChatGPT
 
@@ -133,6 +191,46 @@ This page displayed a workflow for a possible voice helper.<br />**语音助手�
 ## 从公网访问：端口转发
 从公网访问的意义：人不在家，但仍然可以操作家庭内设备或使用内网搭建好的相关服务。<br />学校**电信宽带**闪讯拨号上网可以分配到公网IP，每一次拨号IP会换，每约24小时持续连接会自动重新拨号一次。<br />考虑以下设备连接方式<br />_因为想用路由器智能用移动宽带，但是移动没有分配公网ip -> _[远程控制](#vSdyn)<br />![](https://cdn.nlark.com/yuque/0/2023/jpeg/34376379/1678608304817-fd7b488a-d9d0-4c8f-b98c-9b37362a56ec.jpeg)<br />AP处接入互联网（公网）。HAOS所在设备需先经过路由再访问公网（HAOS不支持使用闪讯或PPPoE拨号上网），所以想从公网访问HAOS同理，公网IP只能定位到路由所在位置而不是HAOS所在位置。在路由内配置端口转发。<br />例如，访问X.X.X.X:8888 （X.X.X.X是路由的公网IP）时，将该端口的流量转发到内网192.168.1.2（HAOS内网IP）的8123端口上。<br />端口转发在路由管理中可以配置。<br />仅考虑学校拨号可获取公网IP的情况，在其他地区拨号可能无法获取公网IP（IPv4分配有限，人口设备密集区上级还有交换机，考虑内网穿透）<br />考虑公网IP配置域名：IP会变化域名不会，方便访问。考虑ddns服务，部分域名商有相关api，花生壳等有相关服务。需要配置路由或部署脚本到持续运行设备上。
 
+<a name="edfRs"></a>
+## 备份与恢复
+<a name="L1CfG"></a>
+### Windows
+使用win32diskimager，新建一个空白文件，后缀为img，打开工具选中sd卡所在分区与该空白镜像。点击**读取**即可开始备份。<br />![image.png](https://cdn.nlark.com/yuque/0/2023/png/34376379/1678962619753-00448af1-2485-4c42-92fe-29dfb61b9dc3.png#averageHue=%23e8e8e8&clientId=ud8a442c1-a650-4&from=paste&height=225&id=u9a467b29&name=image.png&originHeight=342&originWidth=496&originalType=binary&ratio=1&rotation=0&showTitle=false&size=13067&status=done&style=none&taskId=u2f90f0a3-c87a-4d20-9539-fd443efa90d&title=&width=326)![image.png](https://cdn.nlark.com/yuque/0/2023/png/34376379/1678962697866-93519674-8720-41c3-9a86-9df3725e95d4.png#averageHue=%23e8e7e7&clientId=ud8a442c1-a650-4&from=paste&height=234&id=u38b27e73&name=image.png&originHeight=342&originWidth=496&originalType=binary&ratio=1&rotation=0&showTitle=false&size=17869&status=done&style=none&taskId=ue3194691-d1ee-449b-9747-21746a1db1e&title=&width=339)<br />缺点是全盘备份，**即SD卡有多大，镜像就大约有多大**。下一次烧录镜像到sd卡时，sd卡容量必须大于该镜像容量。提示读取成功即备份完成。64GB容量的sd卡备份镜像大小约58GB。<br />**不要勾选仅读取已分配分区。**实测备份出来镜像大小只有33MB，远不足刷入时的镜像大小。
+<a name="D0gZe"></a>
+### Linux【或Linux虚拟机】
+下面这种方法我认为最稳妥也最方便，也有其他手动方法可以创建img文件。很多教程的备份是在树莓派官方系统的前提下，并且树莓派开机的情况下在树莓派本机上完成的。下面的方法是不依靠树莓派，使用读卡器读sd卡备份。
+> 我使用的是VMware 16， Kali系统，分配磁盘空间最好大于两倍SD卡容量
+
+首先打开终端，切换到root用户，列出挂载的所有磁盘
+```shell
+sudo su
+[输入密码]
+
+lsblk
+```
+连接sd卡与读卡器并插入设备，如果使用Linux虚拟机，注意设置该USB设备连接到虚拟机而不是主机（物理机）。确保该设备挂载（Kali中盘会出现在桌面且透明，说明没有挂载，双击即可挂载）后，重复上方命令，查看多出来的盘符。或前往/dev下方前后对比查看也可以。<br />盘符应该形如sdb。sda应该是默认本机的磁盘不是新挂载的。<br />随后开始创建**全盘镜像，大小将约为SD卡容量大小。**if后方是挂载的sd卡的盘符，of是生成的img文件目标地址，bs是块大小不必更改。
+```shell
+dd if=/dev/sdb of=./rpi.img bs=8M
+```
+需要等待一段时间，不要中断命令或关闭终端窗口。在此期间，新建一个终端窗口进行脚本下载，你也可以在目标目录使用ls -lh观察生成的img文件大小是否变化来判断创建镜像进程是否在正常运行。<br />脚本下载， 这个脚本将会把镜像中没有用的部分裁切掉。下载，更改权限，放入环境使其能在其他文件夹也能运行（可选）。
+```shell
+wget https://raw.githubusercontent.com/Drewsif/PiShrink/master/pishrink.sh
+chmod +x pishrink.sh
+sudo mv pishrink.sh /usr/local/bin
+```
+可能网络环境导致无法正常下载该脚本，对于VMware虚拟机，可以在宿主机上下载好直接拖放到虚拟机。<br />等待dd命令运行完成后，形如：![image.png](https://cdn.nlark.com/yuque/0/2023/png/34376379/1678987141560-4a7d9e43-9980-4474-9e67-4540cfc9a8ec.png#averageHue=%23272b37&clientId=u9a7f5165-d9a2-4&from=paste&height=66&id=u07f59356&name=image.png&originHeight=66&originWidth=495&originalType=binary&ratio=1&rotation=0&showTitle=false&size=16971&status=done&style=none&taskId=ud592358f-2bc4-4e55-8fc0-7687f587230&title=&width=495)<br />在终端中使用PiShrink
+```shell
+sudo pishrink.sh [原镜像地址] [新镜像地址]
+```
+该命令会先复制原镜像到新镜像目录随后进行裁剪。随后等待命令运行完成即可获得压缩后的镜像。<br />原镜像约58GB，裁剪后约8GB。<br />**使用Windows方法创建的镜像也可以用这种方法减小体积。**
+<a name="aGCWZ"></a>
+### 恢复
+使用Win32diskImager，步骤如Windows节中，选中后点击**写入**即可。烧录的镜像可能需要重新分配磁盘。
+<a name="RogXR"></a>
+### IMAGE
+创建镜像的用处在于出现错误配置或需要转移设备或存储容器时，可以最快速度恢复服务。<br />这是一份可用的镜像，配置好了Dev log中提到的绝大多数客户端**基础**内容。3.17更新<br />链接：[https://pan.baidu.com/s/13SJGUc1jbu7lTPEwuVjw3w?pwd=HASS](https://pan.baidu.com/s/13SJGUc1jbu7lTPEwuVjw3w?pwd=HASS) <br />提取码：HASS <br />--来自百度网盘超级会员V5的分享
+
+
 ---
 
 <a name="mLWxz"></a>
@@ -142,9 +240,14 @@ This page displayed a workflow for a possible voice helper.<br />**语音助手�
 - [ ] 定制界面
 - [ ] 自动化:
 - [ ] configuration
-- [ ] 远程控制
-- [ ] 内网穿透
-- [ ] Molohub
+- [x] 远程控制
+- [x] 内网穿透
+- [x] FRP
+- [x] Server side
+- [x] Client side
+- [ ] 反向代理
+- [x] ~~Molohub ~~Deprecated: 该add-on的服务已停止运行
+- [x] 树莓派 创建镜像与备份
 - [ ] ChatGPT
 - [ ] xiaoGPT部署
 - [ ] 搞到一个小爱音响
