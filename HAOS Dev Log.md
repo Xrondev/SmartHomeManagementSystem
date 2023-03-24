@@ -167,16 +167,19 @@ token = SAMPLETOKEN
 不要直接复制其他教程的ini，**有些教程的注释与配置项在同一行，这样会识别为配置项的一部分！**<br />血泪教训，稍后客户端的frpc.ini同理，**千万不能把＃注释和配置项写在同一行**。很多教程都是写在同一行。<br />**注意服务器安全组放行上述对应端口（bind_port以及dashboard_port），如果使用了类似BTPanel等快速配置面板的服务器，注意在面板中放行对应端口。注意还需要放行frpc.ini中配置的remote_port端口！**
 <a name="d869t"></a>
 #### FRP: 手动部署方式 Client-side
-尝试使用docker及docker-compose部署FRP失败，重启后CLI工作正常但是无法访问8123端口，FRP的add-on tunnel2local由于下载问题，商店无法直接安装，所以采用手动安装。前提：镜像内需要有SSH & Terminal 插件来使用Linux命令行（HA的命令行是不能使用Linux相关命令的）<br />跟随中客户端（树莓派）部分的引导配置客户端的FRP服务。**不要直接复制教程内的frpc.ini文件使用，注释不能在配置项同一行。**<br />**同时推荐打开日志输出：**
+尝试使用docker及docker-compose部署FRP失败，重启后CLI工作正常但是无法访问8123端口，FRP的add-on tunnel2local由于下载问题，商店无法直接安装，所以采用手动安装。_~~前提：镜像内需要有SSH & Terminal 插件来使用Linux命令行（HA的命令行是不能使用Linux相关命令的）~~_<br />**其实并不是一定要装terminal，手动解压之后利用samba传上去也可以（但是注意frp那个文件会被win识别成病毒自动删除，需要设置一下）**<br />跟随中客户端（树莓派）部分的引导配置客户端的FRP服务。**不要直接复制教程内的frpc.ini文件使用，注释不能在配置项同一行。**<br />**同时推荐打开日志输出：**
 > 最好加一个重定向错误输出的参数，而且用全局变量最好，frpc.ini里面可以加一个日志输出，我这边用的frpc.ini:<br />[common]<br />server_addr = xxxxx<br />server_port = xxx<br />token = xxx
 
 log_file = /config/frp/frp/log/frpc.log<br />log_level = info<br />log_max_days = 3
 
 [HomeAssistant]<br />type = tcp<br />local_ip = 192.168.xx.xx<br />local_port = 8123<br />remote_port = xxxxx
 
-然后命令是HA里面的configuration.yaml命令是:<br />shell_command:<br />frpc: nohup /config/frp/frp/frpc -c /config/frp/frp/frpc.ini >/config/frp/frp/log/1234.log 2>&1 &<br />这样不管是错误还是frp的日志都能看的很清楚
+然后命令是HA里面的configuration.yaml命令是:<br />shell_command:<br />frpc: nohup /config/frp/frp/frpc -c /config/frp/frp/frpc.ini >/config/frp/frp/log/1234.log 2>&1 & <br />这样不管是错误还是frp的日志都能看的很清楚
 
-frpc.ini中配置的remote_port务必在服务器段配置安全组放行该端口。<br />如遇错误可以查看log定位，同时，也可以访问服务器端dashboard来查看是否有客户端连接：左侧Proxies -> TCP<br />![image.png](https://cdn.nlark.com/yuque/0/2023/png/34376379/1678962087209-f4120759-0ff2-4ba0-8c36-742ac7b7ac4a.png#averageHue=%23ead0af&clientId=ud8a442c1-a650-4&from=paste&height=241&id=u05667dca&name=image.png&originHeight=241&originWidth=1281&originalType=binary&ratio=1&rotation=0&showTitle=false&size=7346&status=done&style=none&taskId=uf7738b83-7117-430c-9813-7608548e025&title=&width=1281)<br />确认后可以访问ServerIP:remote_port查看本地的服务。
+frpc.ini中配置的remote_port务必在服务器段配置安全组放行该端口。<br />**记得改一下这个shell命令中的路径为自己放置的frpc的路径**<br />如遇错误可以查看log定位，同时，也可以访问服务器端dashboard来查看是否有客户端连接：左侧Proxies -> TCP<br />![image.png](https://cdn.nlark.com/yuque/0/2023/png/34376379/1678962087209-f4120759-0ff2-4ba0-8c36-742ac7b7ac4a.png#averageHue=%23ead0af&clientId=ud8a442c1-a650-4&from=paste&height=241&id=u05667dca&name=image.png&originHeight=241&originWidth=1281&originalType=binary&ratio=1&rotation=0&showTitle=false&size=7346&status=done&style=none&taskId=uf7738b83-7117-430c-9813-7608548e025&title=&width=1281)<br />确认后可以访问ServerIP:remote_port查看本地的服务。
+:::info
+**如果遇到了各种不明原因无法启动frpc，注意看一下有没有实际运行那个shell命令，有时候HAOS很奇怪读不出那个config.yaml，那就需要自己手动运行下frpc**
+:::
 <a name="lxjHJ"></a>
 ## 语音及ChatGPT
 
@@ -228,8 +231,11 @@ sudo pishrink.sh [原镜像地址] [新镜像地址]
 使用Win32diskImager，步骤如Windows节中，选中后点击**写入**即可。烧录的镜像可能需要重新分配磁盘。
 <a name="RogXR"></a>
 ### IMAGE
-创建镜像的用处在于出现错误配置或需要转移设备或存储容器时，可以最快速度恢复服务。<br />这是一份可用的镜像，配置好了Dev log中提到的绝大多数客户端**基础**内容。3.17更新<br />链接：[https://pan.baidu.com/s/13SJGUc1jbu7lTPEwuVjw3w?pwd=HASS](https://pan.baidu.com/s/13SJGUc1jbu7lTPEwuVjw3w?pwd=HASS) <br />提取码：HASS <br />--来自百度网盘超级会员V5的分享
+创建镜像的用处在于出现错误配置或需要转移设备或存储容器时，可以最快速度恢复服务。<br />这是一份可用的镜像，配置好了Dev log中提到的绝大多数客户端**基础**内容。3.17更新<br />如果遇到内网穿透服务未启动情况，请参考上方相关章节。<br />链接：[https://pan.baidu.com/s/13SJGUc1jbu7lTPEwuVjw3w?pwd=HASS](https://pan.baidu.com/s/13SJGUc1jbu7lTPEwuVjw3w?pwd=HASS) <br />提取码：HASS <br />--来自百度网盘超级会员V5的分享
 
+<a name="iPQ8R"></a>
+## 小爱同学接入ChatGPT
+搞到一台小爱音箱，然后按照[https://github.com/yihong0618/xiaogpt](https://github.com/yihong0618/xiaogpt)里面的视频教程走就可以了<br />过程中遇到了一些小问题：<br />1.视频教程中显示的配置ChatGPT的Github链接在readme里被删掉了，应该是[https://github.com/acheong08/ChatGPT](https://github.com/acheong08/ChatGPT)<br />2.安装项目时用的pip指令报错“python setup.py egg_info did not run successfully”，一方面是pip版本太低，可用pip install --upgrade pip,pip install --upgrade setuptools,pip install ez_setup三个指令升级一下版本，还不行的话就试试直接安装zip包：pip3 install miservice.zip<br />3.因为教程里给的是Mac OS 或 Linux的命令，在Windows里没法用，所以要把export改成set，查询设备DID时的micli.py list改用Python3 ./micli.py list<br />4.用set设置环境变量时注意要在下一级目录里，设置完之后的命令返回上一级文件目录执行<br />5.给小爱音箱配网没法用学校的Wifi，可以开个手机热点<br />6.需要小米的账号和ChatGPT的账号，需要用电脑的蓝牙连上小爱音箱
 
 ---
 
