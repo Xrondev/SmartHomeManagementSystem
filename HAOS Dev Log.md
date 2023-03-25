@@ -238,6 +238,9 @@ sudo pishrink.sh [原镜像地址] [新镜像地址]
 搞到一台小爱音箱，然后按照[https://github.com/yihong0618/xiaogpt](https://github.com/yihong0618/xiaogpt)里面的视频教程走就可以了<br />过程中遇到了一些小问题：<br />1.视频教程中显示的配置ChatGPT的Github链接在readme里被删掉了，应该是[https://github.com/acheong08/ChatGPT](https://github.com/acheong08/ChatGPT)<br />2.安装项目时用的pip指令报错“python setup.py egg_info did not run successfully”，一方面是pip版本太低，可用pip install --upgrade pip,pip install --upgrade setuptools,pip install ez_setup三个指令升级一下版本，还不行的话就试试直接安装zip包：pip3 install miservice.zip<br />3.因为教程里给的是Mac OS 或 Linux的命令，在Windows里没法用，所以要把export改成set，查询设备DID时的micli.py list改用Python3 ./micli.py list<br />4.用set设置环境变量时注意要在下一级目录里，设置完之后的命令返回上一级文件目录执行<br />5.给小爱音箱配网没法用学校的Wifi，可以开个手机热点<br />6.需要小米的账号和ChatGPT的账号，需要用电脑的蓝牙连上小爱音箱
 
 ---
+## Lovelace定制界面
+找了多篇教程，最终决定使用Homekit Infused实现主题效果，其UI的效果演示如视频https://www.bilibili.com/video/BV1uF411z7rg/?spm_id_from=333.337.search-card.all.click&vd_source=f0d7d70133f9043694a4bcb05174541e, 而其教程就在视频简介中有提及分为文字指南和视频教程都可以去了解一下这里就不多提。其中我们需要进入jimz011的github(https://jimz011.github.io/homekit-infused/)下载相关的源码并做好Home Assistant中的插件的准备工作，插件的准备都可以在HACS中完成对照作者给出的要求表已经下载完成了。源码根据视频教程中的步骤去粘贴相应文件到我们自己的config文件中，作者jimz011也给出了相应的步骤如图![image](https://user-images.githubusercontent.com/116329733/227723792-ea167018-083d-4401-8782-2dbcfdd800d4.png)note中提及的两个文件我们暂且复制进去，有需要我会删除这两个选文件
+
 
 <a name="mLWxz"></a>
 # TODO:
