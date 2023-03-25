@@ -1,0 +1,7 @@
+python libraries：
+
+SpeechRecognition
+Google Cloud Speech API
+pyaudio
+requests
+getpass
