@@ -241,8 +241,18 @@ sudo pishrink.sh [原镜像地址] [新镜像地址]
 ## Lovelace定制界面
 找了多篇教程，最终决定使用Homekit Infused实现主题效果，其UI的效果演示如视频https://www.bilibili.com/video/BV1uF411z7rg/?spm_id_from=333.337.search-card.all.click&vd_source=f0d7d70133f9043694a4bcb05174541e, 而其教程就在视频简介中有提及分为文字指南和视频教程都可以去了解一下这里就不多提。其中我们需要进入jimz011的github(https://jimz011.github.io/homekit-infused/)下载相关的源码并做好Home Assistant中的插件的准备工作，插件的准备都可以在HACS中完成对照作者给出的要求表已经下载完成了。源码根据视频教程中的步骤去粘贴相应文件到我们自己的config文件中，作者jimz011也给出了相应的步骤如图![image](https://user-images.githubusercontent.com/116329733/227723792-ea167018-083d-4401-8782-2dbcfdd800d4.png)note中提及的两个文件我们暂且复制进去，有需要我会删除这两个选文件
 
+**3.26 update:** 把 `/hki-base` `/hki-user` `packages` 放到config里了
+
+几个yaml文件还没配置
+
+<table><tr><td bgcolor=yellow>注意packages里的icon文件会传不进去：samba -> 配置 -> Enable Compatibility Mode 下面几个文件tag删掉 -> 保存    之后就可以上传icon文件了</td></tr></table>
+
+我按教程配置yaml文件，然后报错 `Package hki_configuration setup failed. Component lovelace_gen Integration 'lovelace_gen' not found.` 看起来貌似是插件没装？
+
+此外，如果需要传文件，也许可以用左边的terminal，不太确定怎么上传，但是可以进行一些文件操作
 
 <a name="mLWxz"></a>
+
 # TODO:
 
 - [ ] 测试家具
