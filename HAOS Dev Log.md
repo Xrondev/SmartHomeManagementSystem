@@ -237,25 +237,25 @@ sudo pishrink.sh [原镜像地址] [新镜像地址]
 ## 小爱同学接入ChatGPT
 搞到一台小爱音箱，然后按照[https://github.com/yihong0618/xiaogpt](https://github.com/yihong0618/xiaogpt)里面的视频教程走就可以了<br />过程中遇到了一些小问题：<br />1.视频教程中显示的配置ChatGPT的Github链接在readme里被删掉了，应该是[https://github.com/acheong08/ChatGPT](https://github.com/acheong08/ChatGPT)<br />2.安装项目时用的pip指令报错“python setup.py egg_info did not run successfully”，一方面是pip版本太低，可用pip install --upgrade pip,pip install --upgrade setuptools,pip install ez_setup三个指令升级一下版本，还不行的话就试试直接安装zip包：pip3 install miservice.zip<br />3.因为教程里给的是Mac OS 或 Linux的命令，在Windows里没法用，所以要把export改成set，查询设备DID时的micli.py list改用Python3 ./micli.py list<br />4.用set设置环境变量时注意要在下一级目录里，设置完之后的命令返回上一级文件目录执行<br />5.给小爱音箱配网没法用学校的Wifi，可以开个手机热点<br />6.需要小米的账号和ChatGPT的账号，需要用电脑的蓝牙连上小爱音箱
 
----
+<a name="l8S0M"></a>
+## 关于Chatgpt和HomeAssistant的联立使用(Todo)
+思路:<br />设置必要的基础设施:您将需要运行一个HomeAssistant实例，并设置一个ChatGPT API与之交互。<br />安装必需的库:您将需要安装必需的Python库，如homassist和openai。<br />定义HomeAssistant触发器:在HomeAssistant中定义一个触发器，用于ChatGPT提供响应时要执行的操作。例如，如果您想要打开空调，您可以定义一个触发器，在从ChatGPT接收到特定消息后激活空调。<br />记录语音输入:使用像SpeechRecognition这样的Python库来记录用户的语音输入。<br />将音频发送到ChatGPT:使用openai库将音频录制发送到ChatGPT进行处理。<br />从ChatGPT获取响应:一旦ChatGPT处理了音频输入，它将提供一个文本响应，您可以使用openai库检索该文本响应。<br />向HomeAssistant发送响应:检查ChatGPT响应是否与定义的触发条件匹配。如果匹配，发送信号触发HomeAssistant自动化。<br />执行HomeAssistant自动化:然后，HomeAssistant将执行自动化，这可能是打开空调或触发器中指定的任何其他操作。
+<a name="aK90c"></a>
 ## Lovelace定制界面
-找了多篇教程，最终决定使用Homekit Infused实现主题效果，其UI的效果演示如视频https://www.bilibili.com/video/BV1uF411z7rg/?spm_id_from=333.337.search-card.all.click&vd_source=f0d7d70133f9043694a4bcb05174541e, 而其教程就在视频简介中有提及分为文字指南和视频教程都可以去了解一下这里就不多提。其中我们需要进入jimz011的github(https://jimz011.github.io/homekit-infused/)下载相关的源码并做好Home Assistant中的插件的准备工作，插件的准备都可以在HACS中完成对照作者给出的要求表已经下载完成了。源码根据视频教程中的步骤去粘贴相应文件到我们自己的config文件中，作者jimz011也给出了相应的步骤如图![image](https://user-images.githubusercontent.com/116329733/227723792-ea167018-083d-4401-8782-2dbcfdd800d4.png)note中提及的两个文件我们暂且复制进去，有需要我会删除这两个选文件
+找了多篇教程，最终决定使用Homekit Infused实现主题效果，其UI的效果演示如视频[https://www.bilibili.com/video/BV1uF411z7rg/?spm_id_from=333.337.search-card.all.click&vd_source=f0d7d70133f9043694a4bcb05174541e](https://www.bilibili.com/video/BV1uF411z7rg/?spm_id_from=333.337.search-card.all.click&vd_source=f0d7d70133f9043694a4bcb05174541e), 而其教程就在视频简介中有提及分为文字指南和视频教程都可以去了解一下这里就不多提。其中我们需要进入jimz011的github([https://jimz011.github.io/homekit-infused/)下载相关的源码并做好Home](https://jimz011.github.io/homekit-infused/)%E4%B8%8B%E8%BD%BD%E7%9B%B8%E5%85%B3%E7%9A%84%E6%BA%90%E7%A0%81%E5%B9%B6%E5%81%9A%E5%A5%BDHome) Assistant中的插件的准备工作，插件的准备都可以在HACS中完成对照作者给出的要求表已经下载完成了。源码根据视频教程中的步骤去粘贴相应文件到我们自己的config文件中，作者jimz011也给出了相应的步骤如图[![image.png](https://cdn.nlark.com/yuque/0/2023/png/34376379/1679837751901-ba76cb11-66fb-49f3-b813-39ff3e8f7fe7.png#averageHue=%23efedec&clientId=u146806ad-d0af-4&from=paste&id=u5b9da17e&name=image.png&originHeight=619&originWidth=818&originalType=url&ratio=1&rotation=0&showTitle=false&size=62723&status=done&style=none&taskId=u2d712f70-bb32-40ed-93c7-cc9c7fc84ee&title=)](https://user-images.githubusercontent.com/116329733/227723792-ea167018-083d-4401-8782-2dbcfdd800d4.png)note中提及的两个文件我们暂且复制进去，有需要我会删除这两个选文件<br />**3.26 update:** 把 /hki-base /hki-user packages 放到config里了<br />几个yaml文件还没配置
+> 注意packages里的icon文件会传不进去：samba -> 配置 -> Enable Compatibility Mode 下面几个文件tag删掉 -> 保存 之后就可以上传icon文件了
 
-**3.26 update:** 把 `/hki-base` `/hki-user` `packages` 放到config里了
+我按教程配置yaml文件，然后报错 Package hki_configuration setup failed. Component lovelace_gen Integration 'lovelace_gen' not found. 看起来貌似是插件没装？<br />此外，如果需要传文件，也许可以用左边的terminal，不太确定怎么上传，但是可以进行一些文件操作
 
-几个yaml文件还没配置
 
-<table><tr><td bgcolor=yellow>注意packages里的icon文件会传不进去：samba -> 配置 -> Enable Compatibility Mode 下面几个文件tag删掉 -> 保存    之后就可以上传icon文件了</td></tr></table>
 
-我按教程配置yaml文件，然后报错 `Package hki_configuration setup failed. Component lovelace_gen Integration 'lovelace_gen' not found.` 看起来貌似是插件没装？
 
-此外，如果需要传文件，也许可以用左边的terminal，不太确定怎么上传，但是可以进行一些文件操作
+---
 
 <a name="mLWxz"></a>
-
 # TODO:
 
-- [ ] 测试家具
+- [x] 测试家具[PARTIAL]
 - [ ] 定制界面
 - [ ] 自动化:
 - [ ] configuration
@@ -264,11 +264,11 @@ sudo pishrink.sh [原镜像地址] [新镜像地址]
 - [x] FRP
 - [x] Server side
 - [x] Client side
-- [ ] 反向代理
+- [x] 反向代理
 - [x] ~~Molohub ~~Deprecated: 该add-on的服务已停止运行
 - [x] 树莓派 创建镜像与备份
-- [ ] ChatGPT
-- [ ] xiaoGPT部署
-- [ ] 搞到一个小爱音响
+- [x] ChatGPT
+- [x] xiaoGPT部署
+- [x] 搞到一个小爱音响
 - [ ] HA integration
 
